@@ -1,73 +1,134 @@
-/* eslint-disable prettier/prettier */
+import HtmlParser from 'react-html-parser'
 
-// style
-import { BackButton, Container, Content, Description, SpinerContainer, SubTitle, Title } from './BookDetail.styles'
+import { useParams } from 'react-router-dom'
+import { useBookDetailsQuery } from '../../hooks/useBooksDetails'
+import { MainLayout } from '../layouts/MainLayout'
 
-// hooks
-import { useEffect, useState } from "react"
-import { useNavigate, useParams } from "react-router-dom"
+import {
+  Container,
+  ContentContainer,
+  PublisherContainer,
+  DetailsContainer,
+  DetailColum,
+  ButtonsContainer,
+  DescriptionContainer,
+  Description,
+  ThumbnailContainer,
+  Thumbnail,
+  BackgroundThumbnail
+} from './BookDetail.styles'
 
-// components
-import { googleBooksApi } from "../../services/googleBooksApi"
-import { Thumbnail } from '../../components/Thumbnail'
-import parse from 'html-react-parser';
-import { Spinner } from '../../components/Spinner'
-import { ReactComponent as ArrowLeftIcon } from '../../icons/arrow-left.svg'
+import { ReactComponent as StarIcon } from '../../icons/star.svg'
+import { BookDetailLoader } from './BookDetailLoader'
+import { MyBookButton } from './MyBookButton'
+import { BookState } from '../../models/BookState'
+import { useAddToMyBookMutation } from '../../hooks/useAddToMyBooksMutation'
+import { generateThumbnailSrc } from '../../utils/generateThumbnailSrc'
 
+export function BookDetail() {
+  const params = useParams()
+  const addToMyBookMutation = useAddToMyBookMutation()
 
-export interface BookState {
-  id: string
-  volumeInfo: {
-    title: string
-    subTitle: string
-    description: string
-    imageLinks?: {
-      thumbnail: string
+  const { data, isLoading } = useBookDetailsQuery({
+    bookId: params.bookId as string
+  })
+
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('pt-BR', {
+      month: 'short',
+      year: 'numeric'
+    }).format(date)
+  }
+
+  // Higher order function
+  const handleAddToMyBookList = (bookState: BookState) => async () => {
+    if (params.bookId) {
+      addToMyBookMutation.mutateAsync({
+        bookId: params.bookId,
+        bookState
+      })
     }
   }
-}
 
-export function BookDetail () {
-  const [book, setBook] = useState<BookState | null>(null)
-  const params = useParams()
-  const navigate = useNavigate()
+  return (
+    <MainLayout>
+      {data && !isLoading ? (
+        <Container>
+          <ContentContainer>
+            <h1>{data.volumeInfo.title}</h1>
 
-  const { bookId } = params
+            <h2>{data.volumeInfo.authors?.[0]}</h2>
 
-  useEffect(() => {
-    googleBooksApi.get(`/v1/volumes/${bookId}`)
-    .then((response) => setBook(response.data))
-  },[bookId])
+            <PublisherContainer>
+              {data && (
+                <span>
+                  {formatDate(new Date(data.volumeInfo.publishedDate))}
+                </span>
+              )}{' '}
+              .<span>{data.volumeInfo.publisher}</span>
+            </PublisherContainer>
 
-  const handleGoBack = () => {
-    navigate(-1)
-  }
+            <DetailsContainer>
+              <DetailColum>
+                <strong>
+                  {data.volumeInfo.averageRating
+                    ? data.volumeInfo.averageRating
+                    : 4}
 
-  return <Container>
-      {book ? (
-        <>
-        <BackButton>
-          <ArrowLeftIcon onClick={handleGoBack} />
-        </BackButton>
-          <Thumbnail 
-          thumbnail={book.volumeInfo.imageLinks?.thumbnail} 
-          title={book.volumeInfo.title} 
-          size='large' 
-          bgColor='#ef552b'/>
+                  <StarIcon />
+                </strong>
+                <span>Avaliações</span>
+              </DetailColum>
 
-          <Content>
-            <Title>{book.volumeInfo.title}</Title>
-            <SubTitle>{book.volumeInfo.subTitle}</SubTitle>
-            <Description>{parse(book.volumeInfo.description)}</Description>
-          </Content>
-        </>
+              <DetailColum>
+                <strong>{data.volumeInfo.pageCount}</strong>
+                <span>Páginas</span>
+              </DetailColum>
+            </DetailsContainer>
+
+            <ButtonsContainer>
+              <MyBookButton
+                isSelected={data.bookState === 'IS_READING'}
+                onAddBookList={handleAddToMyBookList('IS_READING')}
+                disabled={false}
+              >
+                Estou Lendo
+              </MyBookButton>
+              <MyBookButton
+                isSelected={data.bookState === 'WANTS_TO_READ'}
+                onAddBookList={handleAddToMyBookList('WANTS_TO_READ')}
+                disabled={false}
+              >
+                Quero Ler
+              </MyBookButton>
+              <MyBookButton
+                isSelected={data.bookState === 'READ'}
+                onAddBookList={handleAddToMyBookList('READ')}
+                disabled={false}
+              >
+                Já Li
+              </MyBookButton>
+            </ButtonsContainer>
+
+            <DescriptionContainer>
+              <h3>Sobre este livro</h3>
+
+              <Description>
+                {HtmlParser(data.volumeInfo.description)}
+              </Description>
+            </DescriptionContainer>
+          </ContentContainer>
+
+          <ThumbnailContainer>
+            <Thumbnail src={generateThumbnailSrc({ bookId: data.id })} />
+            <BackgroundThumbnail
+              src={generateThumbnailSrc({ bookId: data.id })}
+            />
+          </ThumbnailContainer>
+        </Container>
       ) : (
-        <SpinerContainer>
-          <Spinner />
-        </SpinerContainer>
-        
-      )
-      }
-    </Container>
-  
+        <BookDetailLoader />
+      )}
+    </MainLayout>
+  )
 }

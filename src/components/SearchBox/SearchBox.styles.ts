@@ -1,25 +1,25 @@
-/* eslint-disable prettier/prettier */
-import styled from 'styled-components'
+import styled, { css } from 'styled-components'
 
 export const Container = styled.div`
-  display: flex;
-  align-items: center;
-  border: 2px solid #d9d9d9;
-  border-radius: 10px;
-  padding: 0 10px;
-  flex: 1;
+  ${({ theme }) => css`
+    display: flex;
+    align-items: center;
+    border: 0.1rem solid ${theme.colors.gray};
+    border-radius: 1rem;
+    padding: 0 1rem;
+    flex: 1;
 
-  svg {
-    height: 20px;
-    width: 20px;
-  }
+    svg {
+      height: 2rem;
+      width: 2rem;
+    }
 
-  input {
-    width: 100%;
-    height: 46px;
-    border: 0;
-    margin-left: 12px;
-    outline: none;
-  }
+    input {
+      width: 100%;
+      height: 3.6rem;
+      border: 0;
+      margin-left: 1.2rem;
+      outline: none;
+    }
+  `}
 `
-

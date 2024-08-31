@@ -1,16 +1,15 @@
-/* eslint-disable prettier/prettier */
-import { InputHTMLAttributes } from 'react'
-import { ReactComponent as SearchIcon } from '../../icons/search.svg'
 import { Container } from './SearchBox.styles'
+
+import { ReactComponent as SearchIcon } from '../../icons/search.svg'
+import { InputHTMLAttributes } from 'react'
 
 type SearchBoxProps = InputHTMLAttributes<HTMLInputElement>
 
-export function SearchBox (props:SearchBoxProps) {
-  return <>
+export function SearchBox(props: SearchBoxProps) {
+  return (
     <Container>
-        <SearchIcon />
-         <input placeholder='Qual livro você quer buscar?'  {...props}/>
+      <SearchIcon />
+      <input placeholder="Encontre seu livro favorito" {...props} />
     </Container>
-    
-  </>
+  )
 }

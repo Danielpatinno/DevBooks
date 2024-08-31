@@ -1,21 +1,26 @@
-/* eslint-disable prettier/prettier */
-import styled, { keyframes } from "styled-components";
+import { css, styled } from "styled-components";
+import { SpinnerProps } from "./Spinner";
 
-const rotation = keyframes`
-    0% {
-        transform: rotate(0deg);
-    }
 
-    100% {
-        transform: rotate(360deg);
-    }
-`
-
-export const Spinner = styled.div`
-    width: 48px;
-    height: 48px;
-    border: 5px solid #fff;
-    border-bottom-color: #ef552b;
+export const Container = styled.div<SpinnerProps>`
+  ${({ theme, size }) => css`
+    display: inline-block;
+    width: ${size}px;
+    height: ${size}px;
     border-radius: 50%;
-    animation: ${rotation} 1s linear infinite;
+    border: 0.2rem solid ${theme.colors.white};
+    border-top: 0.2rem solid transparent;
+    animation: spin 800ms linear infinite;
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }   
+
+      100% {
+        transform: rotate(360deg)
+      }
+    }
+
+  `}
 `
